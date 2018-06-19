@@ -96,7 +96,7 @@ Although in its infancy, Solidity has had widespread adoption and is used to com
  * [Preventative Techniques](#tx-origin-prev)
  * [Real-World Example: Unknown](#tx-origin-example)
 
-## [Ethereum Quirks](#eth-quirks)
+## [Ethereum Quirks](#ethereum-quirks)
 * [Keyless Ether](#keyless-eth)
 * [One Time Addresses](#one-time-addresses)
 
@@ -1536,7 +1536,7 @@ In any case, if the victim sends a transaction (with enough gas) to the `AttackC
 
 I do not know of any publicised exploits of this form in the wild. 
 
-<h2 id="evm-quirks">Ethereum Quirks</h2>
+<h2 id="ethereum-quirks">Ethereum Quirks</h2>
 
 I intend to populate this section with various interesting quirks that get discovered by the community. These are kept in this blog as they may aid in smart contract development if one were to utilize these quirks in practice.  
 
