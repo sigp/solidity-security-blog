@@ -927,9 +927,9 @@ contract Print{
     }
  }
 
- ```
+```
  If the address of either of these contracts were given in the constructor, the `encryptPrivateData()` function would simply produce an event which prints the unencrypted private data. Although in this example a library-like contract was set in the constructor, it is often the case that a privileged user (such as an `owner`) can change library contract addresses. If a linked contract doesn't contain the function being called, the fallback function will execute. For example, with the line `encryptionLibrary.rot13Encrypt()`, if the contract specified by `encryptionLibrary` was:
- ```solidity
+```solidity
  contract Blank {
      event Print(string text);
      function () {
@@ -1548,7 +1548,7 @@ Contract addresses are deterministic, meaning that they can be calculated prior 
 
 Essentially, a contract's address is just the `keccak256` hash of the account that created it concatenated with the accounts transaction nonce[^2]. The same is true for contracts, except contracts nonce's start at `1` whereas address's transaction nonce's start at `0`. 
 
-What this all means, is that given an Ethereum address, we can calculate all the possible contract addresses that this address can spawn. For example, if the address `0x123000...000` were to create a contract on its 100th transaction, it would create the contract address `keccak256(rlp.encode[0x123...000, 100])`, which would give the contract address, `0xed4cafc88a13f5d58a163e61591b9385b6fe6d1a`.
+This means that given an Ethereum address, we can calculate all the possible contract addresses that this address can spawn. For example, if the address `0x123000...000` were to create a contract on its 100th transaction, it would create the contract address `keccak256(rlp.encode[0x123...000, 100])`, which would give the contract address, `0xed4cafc88a13f5d58a163e61591b9385b6fe6d1a`.
 
 What does this all mean? This means that you can send ether to a pre-determined address (one which you don't own the private key to, but know that one of your accounts can create a contract to). You can send ether to that address and then retrieve the ether by later creating a contract which gets spawned over the same address. The constructor could be used to return all your pre-sent ether. Thus if someone where to obtain all your Ethereum private keys, it would be difficult for the attacker to discover that your Ethereum addresses also have access to this *hidden* ether. In fact, if the attacker spent too many transaction such that the nonce required to access your ether is used, it is impossible to recover your hidden ether. 
 
@@ -1564,7 +1564,7 @@ contract KeylessHiddenEthCreator {
             return address(keccak256(0xd6, 0x94, this, 0x80));
         }
         return address(keccak256(0xd6, 0x94, this, nonce));
-// Need to implement rlp encoding properly for full range of nonces
+    // need to implement rlp encoding properly for a full range of nonces
     }
     
     // increment the contract nonce or retrieve ether from a hidden/key-less account
@@ -1579,11 +1579,11 @@ contract KeylessHiddenEthCreator {
 
 contract RecoverContract { 
     constructor(address beneficiary) {
-        selfdestruct(beneficiary); // Don't deploy code. Return the ether stored here to the beneficiary. 
+        selfdestruct(beneficiary); // don't deploy code. Return the ether stored here to the beneficiary. 
     }
  }
 ```
- This contract allows you to store keyless ether (relatively safely, in the sense you can't accidentally miss the nonce)[^3]. The `futureAddresses()` function can be used to calculate the first 127 contract addresses that this contract can spawn, by specifying the `nonce`. If you send ether to one of these addresses, it can be later recovered by calling the `retrieveHiddenEther()` enough times. For example, if you choose `nonce=4` (and send ether to the associated address), you will need to call `retrieveHiddenEther()` four times and it will recover the ether to the `beneficiary` address. 
+This contract allows you to store keyless ether (relatively safely, in the sense you can't accidentally miss the nonce)[^3]. The `futureAddresses()` function can be used to calculate the first 127 contract addresses that this contract can spawn, by specifying the `nonce`. If you send ether to one of these addresses, it can be later recovered by calling the `retrieveHiddenEther()` enough times. For example, if you choose `nonce=4` (and send ether to the associated address), you will need to call `retrieveHiddenEther()` four times and it will recover the ether to the `beneficiary` address. 
  
 This can be done without a contract. You can send ether to addresses that can be created from one of your standard Ethereum accounts and recover it later, at the correct nonce. Be careful however, if you accidentally surpass the transaction nonce that is required to recover your ether, your funds will be lost forever. 
  
@@ -1621,6 +1621,6 @@ This quirk can also be used to send ether to a large number of people in a trust
 
 [^1]: This code was modified from [web3j](https://github.com/web3j/web3j/blob/master/codegen/src/test/resources/solidity/fibonacci/Fibonacci.sol)
 
- [^2]: A transaction nonce is like a transaction counter. It increments ever time a transaction is sent from your account. 
+[^2]: A transaction nonce is like a transaction counter. It increments ever time a transaction is sent from your account. 
  
- [^3]: Do not deploy this contract to store any real ether. It is for demonstrative purposes only. It has no inherent privileges, anyone can recover your ether if you deploy and use it.
+[^3]: Do not deploy this contract to store any real ether. It is for demonstrative purposes only. It has no inherent privileges, anyone can recover your ether if you deploy and use it.
