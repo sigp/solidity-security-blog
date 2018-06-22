@@ -99,6 +99,7 @@ Although in its infancy, Solidity has had widespread adoption and is used to com
 ## [Ethereum Quirks](#ethereum-quirks)
 * [Keyless Ether](#keyless-eth)
 * [One Time Addresses](#one-time-addresses)
+* [Single Transaction Airdrops](#single-transaction-airdrops)
 
 ## [List of Interesting Crypto Related Hacks/Bugs](#hacks)
 
@@ -1609,6 +1610,65 @@ along with the signature, i.e. the `v`, `r` and `s` we made up. This will be a v
 
 This quirk can also be used to send ether to a large number of people in a trustless manner, as Nick Johnson describes in [How to send Ether to 11,440 people](https://medium.com/@weka/how-to-send-ether-to-11-440-people-187e332566b7).
 
+<h3 id="single-transaction-airdrops">Single Transaction Airdrops</h3>
+
+An Airdrop refers to the process of distributing tokens amongst a large
+group of people. Traditionally, airdrops have been processed via a large number
+of transactions where each transaction updates either a single or a batch of
+user's balances. This can be costly and strenuous on the Ethereum blockchain.
+There is an alternative method, in which many users balances can be credited
+with tokens using a single transaction. 
+
+This technique is explained in more detail by its proposer, RicMoo in his post:
+[Merkle Air-Drops: Make Love, Not War](https://blog.ricmoo.com/merkle-air-drops-e6406945584d). 
+
+The idea is to create a [Merkle Tree](https://en.wikipedia.org/wiki/Merkle_tree)
+which contains (as leaf nodes) all the addresses and balances of users to be credited tokens. 
+This will be done off-chain. The merkle tree can be given out
+publicly (again off-chain). A smart contract can then be created containing the
+root hash of the merkle tree which allows users to submit [merkle-proofs](https://www.quora.com/Cryptography-How-does-a-Merkle-proof-actually-work) to obtain
+their tokens. Thus a single transaction (the one used to create the contract,
+    or to simply store the Merkle tree root hash), allows all credited users to redeem
+their airdropped tokens. 
+
+RicMoo in his [post](https://blog.ricmoo.com/merkle-air-drops-e6406945584d) also provides an example of a function which can accept Merkle Proofs
+and credit a user's balance: 
+```solidity
+function redeem(uint256 index, address recipient,
+                uint256 amount, bytes32[] merkleProof) public {
+
+    // Make sure this has not been redeemed
+    uint256 redeemedBlock = _redeemed[index / 256];
+    uint256 redeemedMask = (uint256(1) << uint256(index % 256));
+    require((redeemedBlock & redeemedMask) == 0);
+
+    // Mark it as redeemed (if we fail, we revert)
+    _redeemed[index / 256] = redeemedBlock | redeemedMask;
+
+    // Compute the merkle root from the merkle proof
+    bytes32 node = keccak256(index, recipient, amount);
+    uint256 path = index;
+    for (uint16 i = 0; i < merkleProof.length; i++) {
+        if ((path & 0x01) == 1) {
+            node = keccak256(merkleProof[i], node);
+        } else {
+            node = keccak256(node, merkleProof[i]);
+        }
+        path /= 2;
+    }
+
+    // Check the resolved merkle proof matches our merkle root
+    require(node == _rootHash);
+
+    // Redeem!
+    _balances[recipient] += amount;
+    _totalSupply += amount;
+    Transfer(0, recipient, amount);
+}
+```
+This function could be built into a token contract to allow future airdrops.
+The only transaction required to credit all user's balances, would be the
+transaction that sets the Merkle tree root. 
 
 
 <h2 id="hacks">List of Interesting Crypto Related Hacks/Bugs</h2>
