@@ -247,7 +247,7 @@ contract EtherStore {
  }
 ```
 
-<h3 id="re-example">Real Example: The DAO</h3> 
+<h3 id="re-example">Real-World Example: The DAO</h3> 
 
 [The DAO](https://en.wikipedia.org/wiki/The_DAO_(organization)) (Decentralized Autonomous Organization) was one of the major hacks that occurred in the early development of Ethereum. At the time, the contract held over $150 million USD. Re-entrancy played a major role in the attack which ultimately lead to the hard-fork that created Ethereum Classic (ETC). For a good analysis of the DAO exploit, see [Phil Daian's post](http://hackingdistributed.com/2016/06/18/analysis-of-the-dao-exploit/). 
 
@@ -329,12 +329,6 @@ This is a simple token contract which employs a `transfer()` function, allowing 
 
 The flaw comes in the `transfer()` function. The require statement on line \[13\] can be bypassed using an underflow. Consider a user that has no balance. They could call the `transfer()` function with any non-zero `_value` and pass the require statement on line \[13\]. This is because `balances[msg.sender]` is zero (and a `uint256`) so subtracting any positive amount (excluding `2^256`) will result in a positive number due to the underflow we described above. This is also true for line \[14\], where our balance will be credited with a positive number. Thus, in this example, we have achieved free tokens due to an underflow vulnerability. 
 
-<h3 id="ou-example">Real-World Examples: PoWHC and Batch Transfer Overflow (<a href="https://nvd.nist.gov/vuln/detail/CVE-2018-10299">CVE-2018–10299</a>)</h3>
-
-A 4chan group decided it was a great idea to build a ponzi scheme on Ethereum, written in Solidity. They called it the Proof of Weak Hands Coin (PoWHC). Unfortunately it seems that the author(s) of the contract hadn't seen over/under flows before and consequently, 866 ether was liberated from its contract. A good overview of how the underflow occurs (which is not too dissimilar to the Ethernaut challenge above) is given in [Eric Banisadar's post](https://blog.goodaudience.com/how-800k-evaporated-from-the-powh-coin-ponzi-scheme-overnight-1b025c33b530). 
-
-Some developers also implemented a `batchTransfer()` function into some [ERC20](https://github.com/ethereum/EIPs/blob/master/EIPS/eip-20.md) token contracts. The implementation contained an overflow. [This post](https://medium.com/@peckshield/alert-new-batchoverflow-bug-in-multiple-erc20-smart-contracts-cve-2018-10299-511067db6536) explains it, however I think the title is misleading, in that it has nothing to do with the ERC20 standard, rather some ERC20 token contracts have a vulnerable `batchTransfer()` function implemented. 
-
 <h3 id="ou-prevention">Preventative Techniques</h3>
 
 The (currently) conventional technique to guard against under/overflow vulnerabilities is to use or build mathematical libraries which replace the standard math operators; addition, subtraction and multiplication (division is excluded as it doesn't cause over/under flows and the EVM throws on division by 0). 
@@ -398,6 +392,12 @@ contract TimeLock {
 ```
 
 Notice that all standard math operations have been replaced by the those defined in the `SafeMath` library. The `TimeLock` contract no longer performs any operation which is capable of doing an under/over flow. 
+
+<h3 id="ou-example">Real-World Examples: PoWHC and Batch Transfer Overflow (<a href="https://nvd.nist.gov/vuln/detail/CVE-2018-10299">CVE-2018–10299</a>)</h3>
+
+A 4chan group decided it was a great idea to build a ponzi scheme on Ethereum, written in Solidity. They called it the Proof of Weak Hands Coin (PoWHC). Unfortunately it seems that the author(s) of the contract hadn't seen over/under flows before and consequently, 866 ether was liberated from its contract. A good overview of how the underflow occurs (which is not too dissimilar to the Ethernaut challenge above) is given in [Eric Banisadar's post](https://blog.goodaudience.com/how-800k-evaporated-from-the-powh-coin-ponzi-scheme-overnight-1b025c33b530). 
+
+Some developers also implemented a `batchTransfer()` function into some [ERC20](https://github.com/ethereum/EIPs/blob/master/EIPS/eip-20.md) token contracts. The implementation contained an overflow. [This post](https://medium.com/@peckshield/alert-new-batchoverflow-bug-in-multiple-erc20-smart-contracts-cve-2018-10299-511067db6536) explains it, however I think the title is misleading, in that it has nothing to do with the ERC20 standard, rather some ERC20 token contracts have a vulnerable `batchTransfer()` function implemented. 
 
 <h2 id="ether">Unexpected Ether</h2>
 
@@ -523,7 +523,7 @@ contract EtherGame {
 ```
 Here, we have just created a new variable, `depositedEther` which keeps track of the known ether deposited, and it is this variable to which we perform our requirements and tests. Notice, that we no longer have any reference to `this.balance`. 
 
-<h3 id="ether-example">Real World Example: Unknown </h3>
+<h3 id="ether-example">Real-World Example: Unknown </h3>
 
 I'm yet to find and example of this that has been exploited in the wild. However, a few examples of exploitable contracts were given in the [Underhanded Solidity Contest](https://github.com/Arachnid/uscc/tree/master/submissions-2017/). 
 
@@ -642,7 +642,7 @@ It is also important to notice that when we say that `delegatecall` is state-pre
 Solidity provides the `library` keyword for implementing library contracts (see the [Solidity Docs](http://solidity.readthedocs.io/en/latest/contracts.html?highlight=library#libraries) for further details). This ensures the library contract is stateless and non-self-destructable. Forcing libraries to be stateless mitigates the complexities of storage context demonstrated in this section. Stateless libraries also prevent attacks whereby attackers modify the state of the library directly in order to effect the contracts that depend on the library's code. 
 As a general rule of thumb, when using `DELEGATECALL` pay careful attention to the possible calling context of both the library contract and the calling contract, and whenever possible, build state-less libraries.  
 
-<h3 id="dc-example">Real World Example: Parity Multisig Wallet (Second Hack)</h3>
+<h3 id="dc-example">Real-World Example: Parity Multisig Wallet (Second Hack)</h3>
 
 The Second Parity Multisig Wallet hack is an example of how the context of well-written library code can be exploited if run in its non-intended context. There are a number of good explanations of this hack, such as this overview: [Parity MultiSig Hacked. Again](https://medium.com/chain-cloud-company-blog/parity-multisig-hack-again-b46771eaa838) by Anthony Akentiev, this [stack exchange question](https://ethereum.stackexchange.com/questions/30128/explanation-of-parity-library-suicide/30130) and [An In-Depth Look at the Parity Multisig Bug](http://hackingdistributed.com/2017/07/22/deep-dive-parity-bug/). 
 
@@ -739,11 +739,11 @@ Unfortunately, the visibility of the functions have not been specified. In parti
 
 It is good practice to always specify the visibility of all functions in a contract, even if they are intentionally `public`. Recent versions of Solidity will now show warnings during compilation for functions that have no explicit visibility set, to help encourage this practice. 
 
-<h3 id="visibility-example">Real World Example: Parity MultiSig Wallet (First Hack)</h3>
+<h3 id="visibility-example">Real-World Example: Parity MultiSig Wallet (First Hack)</h3>
 
 In the first Parity multi-sig hack, about \$31M worth of Ether was stolen from primarily three wallets. A good recap of exactly how this was done is given by Haseeb Qureshi in [this post](https://medium.freecodecamp.org/a-hacker-stole-31m-of-ether-how-it-happened-and-what-it-means-for-ethereum-9e5dc29e33ce). 
 
-Essentially, the multi-sig wallet (which can be found [here](https://github.com/paritytech/parity/blob/4d08e7b0aec46443bf26547b17d10cb302672835/js/src/contracts/snippets/enhanced-wallet.sol)) is constructed from a base `Wallet` contract which calls a library contract containing the core functionality (as was described in [Real World Example: Parity Multisig (Second Hack)](#dc-example)). The library contract contains the code to initialise the wallet as can be seen from the following snippet
+Essentially, the multi-sig wallet (which can be found [here](https://github.com/paritytech/parity/blob/4d08e7b0aec46443bf26547b17d10cb302672835/js/src/contracts/snippets/enhanced-wallet.sol)) is constructed from a base `Wallet` contract which calls a library contract containing the core functionality (as was described in [Real-World Example: Parity Multisig (Second Hack)](#dc-example)). The library contract contains the code to initialise the wallet as can be seen from the following snippet
 ```solidity
 contract WalletLibrary is WalletEvents {
   
@@ -792,7 +792,7 @@ Some of the first contracts built on the Ethereum platform were based around gam
 
 The source of entropy (randomness) must be external to the blockchain. This can be done amongst peers with systems such as [commit-reveal](https://ethereum.stackexchange.com/questions/191/how-can-i-securely-generate-a-random-number-in-my-smart-contract), or via changing the trust model to a group of participants (such as in [RandDAO](https://github.com/randao/randao)). This can also be done via a centralised entity, which acts as a randomness oracle. Block variables (in general, there are some exceptions) should not be used to source entropy as they can be manipulated by miners. 
 
-<h3 id="entropy-example">Real World Example: PRNG Contracts</h3>
+<h3 id="entropy-example">Real-World Example: PRNG Contracts</h3>
 
 Arseny Reutov wrote a [blog post](https://blog.positive.com/predicting-random-numbers-in-ethereum-smart-contracts-e5358c6b8620) after he analysed 3649 live smart contracts which were using some sort of pseudo random number generator (PRNG) and found 43 contracts which could be exploited. This post discusses the pitfalls of using block variables as entropy in further detail. 
 
@@ -963,7 +963,7 @@ Another solution is to hard code any external contract addresses if they are kno
 In general, code that calls external contracts should always be looked at carefully. As a developer, when defining external contracts, it can be a good idea to make the contract addresses public (which is not the case in the honey-pot example) to allow users to easily examine which code is being referenced by the contract. Conversely, if a contract has a private variable contract address it can be a sign of someone behaving maliciously (as shown in the real-world example). If a privileged (or any) user is capable of changing a contract address which is used to call external functions, it can be important (in a decentralised system context) to implement a time-lock or voting mechanism to allow users to see which code is being changed or to give participants a chance to opt in/out with the new contract address. 
 
 
-<h3 id="cr-example">Real World Example: Re-Entrancy Honey Pot</h3>
+<h3 id="cr-example">Real-World Example: Re-Entrancy Honey Pot</h3>
 
 A number of recent honey pots have been released on the main net. These contracts try to outsmart Ethereum hackers who try to exploit the contracts, but who in turn end up getting ether lost to the contract they expect to exploit. One example employs the above attack by replacing an expected contract with a malicious one in the constructor. The code can be found [here](https://etherscan.io/address/0x95d34980095380851902ccd9a1fb4c813c2cb639#code): 
 ```solidity
@@ -1063,10 +1063,9 @@ Ok, so now lets look at what happens if we were to send an address that was miss
 
 I suppose it is obvious to say that validating all inputs before sending them to the blockchain will prevent these kinds of attacks. It should also be noted that parameter ordering plays an important role here. As padding only occurs at the end, careful ordering of parameters in the smart contract can potentially mitigate some forms of this attack. 
 
-<h3 id="short-example">Real World Example: UnKnown</h3>
+<h3 id="short-example">Real-World Example: Unknown</h3>
 
 I do not know of any publicised attack of this kind in the wild. 
-
 
 <h2 id="unchecked-calls">Unchecked CALL Return Values</h2>
 
