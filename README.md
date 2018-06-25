@@ -10,7 +10,7 @@ CodeBlockCSS: atom-one-dark.css
 CodeBlockLineNumbers: true
 Summary: This post aims to be a relatively in-depth and up-to-date introductory post detailing the past mistakes that have been made by Solidity developers in an effort to prevent future devs from repeating history.
 
-Although in its infancy, Solidity has had widespread adoption and is used to compile the byte-code in many Ethereum smart contracts we see today. There have been a number of harsh lessons learnt by developers and users a-like in discovering the nuances of the language and the EVM. This post aims to be a relatively in-depth and up-to-date introductory post detailing the past mistakes that have been made by Solidity developers in an effort to prevent future devs from repeating history. 
+Although in its infancy, Solidity has had widespread adoption and is used to compile the byte-code in many Ethereum smart contracts we see today. There have been a number of harsh lessons learnt by developers and users alike in discovering the nuances of the language and the EVM. This post aims to be a relatively in-depth and up-to-date introductory post detailing the past mistakes that have been made by Solidity developers in an effort to prevent future devs from repeating history. 
 
 *As this is a rapidly changing area, I've put this post on [Github](https://github.com/sigp/solidity-security-blog) to encourage anyone/everyone to contribute to this post or submit issues for the errors that I've surely made.*
 
