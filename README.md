@@ -1,6 +1,6 @@
 Title: Solidity Security: Comprehensive list of known attack vectors and common anti-patterns
 Date: 2018-05-30 10:20
-Modified: 2018-07-18 15:00
+Modified: 2018-09-17 22:00
 Category: Ethereum
 Tags: ethereum, solidity, security
 Slug: solidity-security
@@ -194,16 +194,27 @@ contract Attack {
 Let us see how this malicious contract can exploit our `EtherStore` contract. The attacker would create the above contract (let's say at the address `0x0...123`) with the `EtherStore`'s contract address as the constructor parameter. This will initialize and point the public variable `etherStore` to the contract we wish to attack. 
 
 The attacker would then call the `pwnEtherStore()` function, with some amount of ether (greater than or equal to 1), lets say `1 ether` for this example. In this example we assume a number of other users have deposited ether into this contract, such that it's current balance is `10 ether`. The following would then occur:
+
 1. **Attack.sol - Line \[15\]** - The `depositFunds()` function of the EtherStore contract will be called with a `msg.value` of `1 ether` (and a lot of gas). The sender (`msg.sender`) will be our malicious contract (`0x0...123`). Thus, `balances[0x0..123] = 1 ether`.  
+
 2. **Attack.sol - Line \[17\]** - The malicious contract will then call the `withdrawFunds()` function of the `EtherStore` contract with a parameter of `1 ether`. This will pass all the requirements (Lines \[12\]-\[16\] of the `EtherStore` contract) as we have made no previous withdrawals.
+
 3. **EtherStore.sol - Line \[17\]** - The contract will then send `1 ether` back to the malicious contract. 
+
 4. **Attack.sol - Line \[25\]** - The ether sent to the malicious contract will then execute the fallback function. 
+
 5. **Attack.sol - Line \[26\]** - The total balance of the EtherStore contract was `10 ether` and is now `9 ether` so this if statement passes. 
+
 6. **Attack.sol - Line \[27\]** - The fallback function then calls the `EtherStore` `withdrawFunds()` function again and "*re-enters*" the `EtherStore` contract. 
+
 7. **EtherStore.sol - Line \[11\]** - In this second call to `withdrawFunds()`, our balance is still `1 ether` as line \[18\] has not yet been executed. Thus, we still have `balances[0x0..123] = 1 ether`. This is also the case for the `lastWithdrawTime` variable. Again, we pass all the requirements. 
+
 8. **EtherStore.sol - Line \[17\]** - We withdraw another `1 ether`. 
+
 9. **Steps 4-8 will repeat** -  until `EtherStore.balance >= 1` as dictated by line \[26\] in `Attack.sol`. 
+
 10. **Attack.sol - Line \[26\]** - Once there less 1 (or less) ether left in the `EtherStore` contract, this if statement will fail. This will then allow lines \[18\] and \[19\] of the `EtherStore` contract to be executed (for each call to the `withdrawFunds()` function). 
+
 11. **EtherStore.sol - Lines \[18\] and \[19\]** - The `balances` and `lastWithdrawTime` mappings will be set and the execution will end. 
 
 The final result, is that the attacker has withdrawn all (bar 1) ether from the `EtherStore` contract, instantaneously with a single transaction. 
@@ -285,8 +296,9 @@ contract TimeLock {
     function withdraw() public {
         require(balances[msg.sender] > 0);
         require(now > lockTime[msg.sender]);
+        uint balance = balances[msg.sender];
         balances[msg.sender] = 0;
-        msg.sender.transfer(balances[msg.sender]);
+        msg.sender.transfer(balance);
     }
 }
 ```
