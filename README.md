@@ -485,8 +485,8 @@ contract EtherGame {
         require(this.balance == finalMileStone);
         // ensure there is a reward to give
         require(redeemableEther[msg.sender] > 0); 
-        uint transferValue = balances[msg.sender];
-        balances[msg.sender] = 0;
+        uint transferValue = redeemableEther[msg.sender];
+        redeemableEther[msg.sender] = 0;
         msg.sender.transfer(transferValue);
     }
  }    
@@ -541,9 +541,9 @@ contract EtherGame {
         require(depositedWei == finalMileStone);
         // ensure there is a reward to give
         require(redeemableEther[msg.sender] > 0); 
-    uint transferValue = balances[msg.sender];
-    balances[msg.sender] = 0;
-    msg.sender.transfer(transferValue);
+        uint transferValue = redeemableEther[msg.sender];
+        redeemableEther[msg.sender] = 0;
+        msg.sender.transfer(transferValue);
     }
  }    
 ```
