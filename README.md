@@ -119,7 +119,7 @@ Although in its infancy, Solidity has had widespread adoption and is used to com
 
 One of the features of Ethereum smart contracts is the ability to call and utilise code of other external contracts. Contracts also typically handle ether, and as such often send ether to various external user addresses. The operation of calling external contracts, or sending ether to an address, requires the contract to submit an external call. These external calls can be hijacked by attackers whereby they force the contract to execute further code (i.e. through a fallback function) , including calls back into itself. Thus the code execution "*re-enters*" the contract. Attacks of this kind were used in the infamous DAO hack. 
 
-For further reading on re-entrancy attacks, see [Reentrancy Attack On Smart Contracts](https://medium.com/@gus_tavo_guim/reentrancy-attack-on-smart-contracts-how-to-identify-the-exploitable-and-an-example-of-an-attack-4470a2d8dfe4) and [Consensus - Ethereum Smart Contract Best Practices](https://consensys.github.io/smart-contract-best-practices/known_attacks/#dos-with-unexpected-revert).
+For further reading on re-entrancy attacks, see [Reentrancy Attack On Smart Contracts](https://medium.com/@gus_tavo_guim/reentrancy-attack-on-smart-contracts-how-to-identify-the-exploitable-and-an-example-of-an-attack-4470a2d8dfe4) and [Consensus - Ethereum Smart Contract Best Practices](https://consensys.github.io/smart-contract-best-practices/known_attacks/#reentrancy).
 
 
 <h3 id="re-vuln">The Vulnerability</h3>
