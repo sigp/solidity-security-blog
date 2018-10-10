@@ -1705,6 +1705,7 @@ transaction that sets the Merkle tree root.
 
 <h2 id="hacks">List of Interesting Crypto Related Hacks/Bugs</h2>
 
+* [SpankChain](https://medium.com/spankchain/we-got-spanked-what-we-know-so-far-d5ed3a0f38fe)
 * [CoinDash](https://www.theregister.co.uk/2017/07/18/coindash_hack/)
 * [SmartBillions](https://www.reddit.com/r/ethereum/comments/74d3dc/smartbillions_lottery_contract_just_got_hacked/)
 * [Exchange Didn't add "0x" to payload](https://steemit.com/cryptocurrency/@barrydutton/breaking-the-biggest-canadian-coin-exchange-quadrigacx-loses-67-000-usdeth-due-to-coding-error-funds-locked-in-an-executable)
