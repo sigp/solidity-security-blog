@@ -1,6 +1,6 @@
 Title: Solidity Security: Comprehensive list of known attack vectors and common anti-patterns
 Date: 2018-05-30 10:20
-Modified: 2018-10-10 12:00
+Modified: 2018-10-20 14:00
 Category: Ethereum
 Tags: ethereum, solidity, security
 Slug: solidity-security
@@ -1229,7 +1229,82 @@ This category is very broad, but fundamentally consists of attacks where users c
 
 There are various ways a contract can become inoperable. Here I will only highlight some potentially less-obvious Blockchain nuanced Solidity coding patterns that can lead to attackers performing DOS attacks.
 
-**1. Looping through externally manipulated mappings or arrays** - In my adventures I've seen various forms of this kind of pattern. Typically it appears in scenarios where an `owner` wishes to distribute tokens amongst their investors, and do so with a `distribute()`-like function as can be seen in the example contract:
+**1. External calls without gas stipends** - It may be the case that you wish
+to make an external call to an unknown contract and continue processing the
+transaction regardless whether that call fails or not. Typically this is
+achieved by using the `CALL` opcode, which does not revert the transaction
+if the call fails (see [Unchecked CALL Return Values](#unchecked-calls) for further details and examples).
+Let us consider a simple example, where we have a contract wallet, that slowly
+trickles out ether when the `withdraw()` function is called. A `partner` can
+add their address and spend gas to call the withdraw, giving both the
+`partner` and the `owner` 1% of the total contract balance.
+
+```solidity
+contract TrickleWallet {
+
+    address public partner; // withdrawal partner - pay the gas, split the withdraw
+    address public constant owner = 0xA9E;
+    uint timeLastWithdrawn;
+    mapping(address => uint) withdrawPartnerBalances; // keep track of partners balances
+
+    function setWithdrawPartner(address _partner) public {
+        require(partner == '0x0' || msg.sender == partner);
+        partner = _partner;
+    }
+
+    // withdraw 1% to recipient and 1% to owner
+    function withdraw() public {
+        uint amountToSend = address(this).balance/100;
+        // perform a call without checking return
+        // the recipient can revert, the owner will still get their share
+        partner.call.value(amountToSend)();
+        owner.transfer(amountToSend);
+        // keep track of last withdrawal time
+        timeLastWithdrawn = now;
+        withdrawPartnerBalances[partner] += amountToSend;
+    }
+
+    // allow deposit of funds
+    function() payable {}
+
+    // convenience function
+    function contractBalance() view returns (uint) {
+        return address(this).balance;
+    }
+}
+```
+
+Notice that on line \[17\] we perform an external call sending 1% of the
+contract balance  to a user-specified account. The reason the `CALL` opcode is used, is to ensure that
+the owner still gets paid, even if the external call reverts. The issue is that
+the transaction will send all of its gas (in reality, only most of the transaction gas is sent, some is left to finish processing the call) to the external call. If the user were malicious they could create a contract that would consume all the gas, and force all transactions to `withdraw()` to fail, due to running out of gas.
+
+For example, consider the following malicious contract that consumes all gas,
+```solidity
+contract ConsumeAllGas {
+    function () payable {
+        // an assert consumes all transaction gas, unlike a
+        //revert which returns the remaining gas
+        assert(1==2);
+    }
+}
+```
+If a withdrawal partner decided they didn't like the owner of the contract.
+They could set the partner address to this contract and lock all the funds in
+the `TrickleWallet` contract forever.
+
+To prevent such DOS attack vectors, ensure a gas stipend is specified in an
+external call, to limit the amount of gas that that transaction can use. In our
+example, we could remedy this attack by changing line \[17\] to:
+```solidity
+partner.call.gas(50000).value(amountToSend)();
+```
+This modification allows only 50,000 gas to be spent on the external
+transaction. The `owner` may set a gas price larger than this, in order to have
+their transaction complete, regardless of how much the external transaction
+uses.
+
+**2. Looping through externally manipulated mappings or arrays** - In my adventures I've seen various forms of this kind of pattern. Typically it appears in scenarios where an `owner` wishes to distribute tokens amongst their investors, and do so with a `distribute()`-like function as can be seen in the example contract:
 
 ```solidity
 contract DistributeTokens {
@@ -1256,7 +1331,7 @@ contract DistributeTokens {
 
 Notice that the loop in this contract runs over an array which can be artificially inflated. An attacker can create many user accounts making the `investor` array large. In principle this can be done such that the gas required to execute the for loop exceeds the block gas limit, essentially making the `distribute()` function inoperable.
 
-**2. Owner operations** - Another common pattern is where owners have specific privileges in contracts and must perform some task in order for the contract to proceed to the next state. One example would be an ICO contract that requires the owner to `finalize()` the contract which then allows tokens to be transferable, i.e.
+**3. Owner operations** - Another common pattern is where owners have specific privileges in contracts and must perform some task in order for the contract to proceed to the next state. One example would be an ICO contract that requires the owner to `finalize()` the contract which then allows tokens to be transferable, i.e.
 ``` solidity
 bool public isFinalized = false;
 address public owner; // gets set somewhere
@@ -1279,7 +1354,7 @@ function transfer(address _to, uint _value) returns (bool) {
 ```
 In such cases, if a privileged user loses their private keys, or becomes inactive, the entire token contract becomes inoperable. In this case, if the `owner` cannot call `finalize()` no tokens can be transferred; i.e. the entire operation of the token ecosystem hinges on a single address.
 
-**3. Progressing state based on external calls** - Contracts are sometimes written such that in order to progress to a new state
+**4. Progressing state based on external calls** - Contracts are sometimes written such that in order to progress to a new state
 requires sending ether to an address, or waiting for some input from an
 external source.  These patterns can lead to DOS attacks, when the external
 call fails or is prevented for external reasons. In the example of sending
