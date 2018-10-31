@@ -1444,7 +1444,7 @@ This means that `unlocked` can be directly modified, simply by the `bytes32 _nam
 
 <h3 id="storage-prev">Preventative Techniques</h3>
 
-The Solidity compiler raises unintialised storage variables as warnings, thus developers should pay careful attention to these warnings when building smart contracts. The current version of mist (0.10), doesn't allow these contracts to be compiled. It is often good practice to explicitly use the `memory` or `storage` when dealing with complex types to ensure they behave as expected. (NOTE: explicit use of `memory` and `storage` are required as of `0.5.0`)
+The Solidity compiler raises unintialised storage variables as warnings, thus developers should pay careful attention to these warnings when building smart contracts. The current version of mist (0.10), doesn't allow these contracts to be compiled. It is good practice to explicitly use the `memory` or `storage` keywords when dealing with complex types to ensure they behave as expected. As of Solidity version `0.5.0` use of `memory` and `storage` are mandatory.
 
 <h3 id="storage-example">Real-World Examples: Honey Pots: OpenAddressLottery and CryptoRoulette</h3>
 
