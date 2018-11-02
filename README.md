@@ -81,7 +81,7 @@ Although in its infancy, Solidity has had widespread adoption and is used to com
  * [Preventative Techniques](#constructors-prev)
  * [Real-World Example: Rubixi](#constructors-example)
 
-#### [14. Unintialised Storage Pointers](#storage)
+#### [14. Uninitialised Storage Pointers](#storage)
  * [The Vulnerability](#storage-vuln)
  * [Preventative Techniques](#storage-prev)
  * [Real-World Examples: Honey Pots: OpenAddressLottery and CryptoRoulette](#storage-example)
@@ -163,7 +163,7 @@ import "EtherStore.sol";
 contract Attack {
   EtherStore public etherStore;
 
-  // intialise the etherStore variable with the contract address
+  // initialise the etherStore variable with the contract address
   constructor(address _etherStoreAddress) {
       etherStore = EtherStore(_etherStoreAddress);
   }
@@ -1093,7 +1093,7 @@ I do not know of any publicised attack of this kind in the wild.
 
 <h2 id="unchecked-calls"><span id="SP-9">9. Unchecked CALL Return Values</span></h2>
 
-There a number of ways of performing external calls in solidity. Sending ether to external accounts is commonly performed via the `transfer()` method.  However, the `send()` function can also be used and, for more versatile external calls, the `CALL` opcode can be directly employed in solidity. The `call()` and `send()` functions return a boolean indicating if the call succeeded or failed. Thus these functions have a simple caveat, in that the transaction that executes these functions will not revert if the external call (intialised by `call()` or `send()`) fails, rather the `call()` or `send()` will simply return `false`. A common pitfall arises when the return value is not checked, rather the developer expects a revert to occur.
+There a number of ways of performing external calls in solidity. Sending ether to external accounts is commonly performed via the `transfer()` method.  However, the `send()` function can also be used and, for more versatile external calls, the `CALL` opcode can be directly employed in solidity. The `call()` and `send()` functions return a boolean indicating if the call succeeded or failed. Thus these functions have a simple caveat, in that the transaction that executes these functions will not revert if the external call (initialised by `call()` or `send()`) fails, rather the `call()` or `send()` will simply return `false`. A common pitfall arises when the return value is not checked, rather the developer expects a revert to occur.
 
 For further reading, see [DASP Top 10](http://www.dasp.co/#item-4) and [Scanning Live Ethereum Contracts for the "Unchecked-Send" Bug](http://hackingdistributed.com/2016/06/16/scanning-live-ethereum-contracts-for-bugs/).
 
@@ -1466,9 +1466,9 @@ This issue has been primarily addressed in the Solidity compiler in version `0.4
 Rubixi ([contract code](https://etherscan.io/address/0xe82719202e5965Cf5D9B6673B7503a3b92DE20be#code)) was another pyramid scheme that exhibited this kind of vulnerability. It was originally called `DynamicPyramid` but the contract name was changed before deployment to `Rubixi`. The constructor's name wasn't changed, allowing any user to become the `creator`. Some interesting discussion related to this bug can be found on this [Bitcoin Thread](https://bitcointalk.org/index.php?topic=1400536.60). Ultimately, it allowed users to fight for `creator` status to claim the fees from the pyramid scheme. More detail on this particular bug can be found [here](https://applicature.com/blog/history-of-ethereum-security-vulnerabilities-hacks-and-their-fixes).
 
 
-<h2 id="storage"><span id="SP-14">14. Unintialised Storage Pointers</span></h2>
+<h2 id="storage"><span id="SP-14">14. Uninitialised Storage Pointers</span></h2>
 
-The EVM stores data either as `storage` or as `memory`. Understanding exactly how this is done and the default types for local variables of functions is highly recommended when developing contracts. This is because it is possible to produce vulnerable contracts by inappropriately intialising variables.
+The EVM stores data either as `storage` or as `memory`. Understanding exactly how this is done and the default types for local variables of functions is highly recommended when developing contracts. This is because it is possible to produce vulnerable contracts by inappropriately initialising variables.
 
 To read more about `storage` and `memory` in the EVM, see the [Solidity Docs: Data Location](http://solidity.readthedocs.io/en/latest/types.html#data-location), [Solidity Docs: Layout of State Variables in Storage](http://solidity.readthedocs.io/en/latest/miscellaneous.html#layout-of-state-variables-in-storage), [Solidity Docs: Layout in Memory](http://solidity.readthedocs.io/en/latest/miscellaneous.html#layout-in-memory).
 
@@ -1519,7 +1519,7 @@ This means that `unlocked` can be directly modified, simply by the `bytes32 _nam
 
 <h3 id="storage-prev">Preventative Techniques</h3>
 
-The Solidity compiler raises unintialised storage variables as warnings, thus developers should pay careful attention to these warnings when building smart contracts. The current version of mist (0.10), doesn't allow these contracts to be compiled. It is good practice to explicitly use the `memory` or `storage` keywords when dealing with complex types to ensure they behave as expected. As of Solidity version `0.5.0` use of `memory` and `storage` are mandatory.
+The Solidity compiler raises uninitialised storage variables as warnings, thus developers should pay careful attention to these warnings when building smart contracts. The current version of mist (0.10), doesn't allow these contracts to be compiled. It is good practice to explicitly use the `memory` or `storage` keywords when dealing with complex types to ensure they behave as expected. As of Solidity version `0.5.0` use of `memory` and `storage` are mandatory.
 
 <h3 id="storage-example">Real-World Examples: Honey Pots: OpenAddressLottery and CryptoRoulette</h3>
 
