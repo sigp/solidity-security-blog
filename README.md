@@ -192,7 +192,7 @@ contract Attack {
 
 Let us see how this malicious contract can exploit our `EtherStore` contract. The attacker would create the above contract (let's say at the address `0x0...123`) with the `EtherStore`'s contract address as the constructor parameter. This will initialize and point the public variable `etherStore` to the contract we wish to attack.
 
-The attacker would then call the `pwnEtherStore()` function, with some amount of ether (greater than or equal to 1), lets say `1 ether` for this example. In this example we assume a number of other users have deposited ether into this contract, such that it's current balance is `10 ether`. The following would then occur:
+The attacker would then call the `pwnEtherStore()` function, with some amount of ether (greater than or equal to 1), let's say `1 ether` for this example. In this example we assume a number of other users have deposited ether into this contract, such that it's current balance is `10 ether`. The following would then occur:
 
 1. **Attack.sol - Line \[15\]** - The `depositFunds()` function of the EtherStore contract will be called with a `msg.value` of `1 ether` (and a lot of gas). The sender (`msg.sender`) will be our malicious contract (`0x0...123`). Thus, `balances[0x0..123] = 1 ether`.
 
@@ -638,7 +638,7 @@ Before discussing the actual issue, we take a quick detour to understanding how 
 
 As an example, let's look at the library contract. It has two state variables, `start` and `calculatedFibNumber`. The first variable is `start`, as such it gets stored into the contract's storage at `slot[0]` (i.e. the first slot). The second variable, `calculatedFibNumber`, gets placed in the next available storage slot, `slot[1]`. If we look at the function `setStart()`, it takes an input and sets `start` to whatever the input was. This function is therefore setting `slot[0]` to whatever input we provide in the `setStart()` function. Similarly, the `setFibonacci()` function sets `calculatedFibNumber` to the result of `fibonacci(n)`. Again, this is simply setting storage `slot[1]` to the value of `fibonacci(n)`.
 
-Now lets look at the `FibonacciBalance` contract. Storage `slot[0]` now corresponds to `fibonacciLibrary` address and `slot[1]` corresponds to `calculatedFibNumber`. It is in this incorrect mapping that the vulnerability occurs. `delegatecall` **preserves contract context**. This means that code that is executed via `delegatecall` will act on the state (i.e. storage) of the calling contract.
+Now let's look at the `FibonacciBalance` contract. Storage `slot[0]` now corresponds to `fibonacciLibrary` address and `slot[1]` corresponds to `calculatedFibNumber`. It is in this incorrect mapping that the vulnerability occurs. `delegatecall` **preserves contract context**. This means that code that is executed via `delegatecall` will act on the state (i.e. storage) of the calling contract.
 
 Now notice that in `withdraw()` on line \[21\] we execute, `fibonacciLibrary.delegatecall(fibSig,withdrawalCounter)`. This calls the `setFibonacci()` function, which as we discussed, modifies storage  `slot[1]`, which in our current context is `calculatedFibNumber`. This is as expected (i.e. after execution, `calculatedFibNumber` gets adjusted). However, recall that the `start` variable in the `FibonacciLib` contract is located in storage `slot[0]`, which is the `fibonacciLibrary` address in the current contract. This means that the function `fibonacci()` will give an unexpected result. This is because it references `start` (`slot[0]`) which in the current calling context is the `fibonacciLibrary` address (which will often be quite large, when interpreted as a `uint`). Thus it is likely that the `withdraw()` function will revert as it will not contain `uint(fibonacciLibrary)` amount of ether, which is what `calculatedFibNumber` will return.
 
@@ -738,7 +738,7 @@ Functions in Solidity have visibility specifiers which dictate how functions are
 
 The default visibility for functions is `public`. Therefore functions that do not specify any visibility will be callable by external users.  The issue comes when developers mistakenly ignore visibility specifiers on functions which should be private (or only callable within the contract itself).
 
-Lets quickly explore a trivial example.
+Let's quickly explore a trivial example.
 
 ```solidity
 contract HashForEther {
@@ -1081,7 +1081,7 @@ function transfer(address to, uint tokens) public returns (bool success);
 ```
 Now consider, an exchange, holding a large amount of a token (let's say `REP`) and a user wishes to withdraw their share of 100 tokens. The user would submit their address, `0xdeaddeaddeaddeaddeaddeaddeaddeaddeaddead` and the number of tokens, `100`. The exchange would encode these parameters in the order specified by the `transfer()` function, i.e. `address` then `tokens`. The encoded result would be `a9059cbb000000000000000000000000deaddeaddeaddeaddeaddeaddeaddeaddeaddead0000000000000` `000000000000000000000000000000000056bc75e2d63100000`. The first four bytes (`a9059cbb`) are the `transfer()` [function signature/selector](https://solidity.readthedocs.io/en/latest/abi-spec.html#function-selector), the second 32 bytes are the address, followed by the final 32 bytes which represent the `uint256` number of tokens. Notice that the hex `56bc75e2d63100000` at the end corresponds to 100 tokens (with 18 decimal places, as specified by the `REP` token contract).
 
-Ok, so now lets look at what happens if we were to send an address that was missing 1 byte (2 hex digits). Specifically, let's say an attacker sends `0xdeaddeaddeaddeaddeaddeaddeaddeaddeadde`as an address (missing the last two digits) and the same  `100` tokens to withdraw. If the exchange doesn't validate this input, it would get encoded as `a9059cbb000000000000000000000000deaddeaddeaddeaddeaddeaddeaddeaddeadde00000000000000` `00000000000000000000000000000000056bc75e2d6310000000`. The difference is subtle. Note that `00` has been padded to the end of the encoding, to make up for the short address that was sent. When this gets sent to the smart contract, the `address` parameters will read as `0xdeaddeaddeaddeaddeaddeaddeaddeaddeadde00` and the value will be read as `56bc75e2d6310000000` (notice the two extra `0`'s). This value is now, `25600` tokens (the value has been multiplied by `256`). In this example, if the exchange held this many tokens, the user would withdraw `25600` tokens (whilst the exchange thinks the user is only withdrawing `100`) to the modified address. Obviously the attacker won't possess the modified address in this example, but if the attacker were to generate any address which ended in `0`'s (which can be easily brute forced) and used this generated address, they could easily steal tokens from the unsuspecting exchange.
+Ok, so now let's look at what happens if we were to send an address that was missing 1 byte (2 hex digits). Specifically, let's say an attacker sends `0xdeaddeaddeaddeaddeaddeaddeaddeaddeadde`as an address (missing the last two digits) and the same  `100` tokens to withdraw. If the exchange doesn't validate this input, it would get encoded as `a9059cbb000000000000000000000000deaddeaddeaddeaddeaddeaddeaddeaddeadde00000000000000` `00000000000000000000000000000000056bc75e2d6310000000`. The difference is subtle. Note that `00` has been padded to the end of the encoding, to make up for the short address that was sent. When this gets sent to the smart contract, the `address` parameters will read as `0xdeaddeaddeaddeaddeaddeaddeaddeaddeadde00` and the value will be read as `56bc75e2d6310000000` (notice the two extra `0`'s). This value is now, `25600` tokens (the value has been multiplied by `256`). In this example, if the exchange held this many tokens, the user would withdraw `25600` tokens (whilst the exchange thinks the user is only withdrawing `100`) to the modified address. Obviously the attacker won't possess the modified address in this example, but if the attacker were to generate any address which ended in `0`'s (which can be easily brute forced) and used this generated address, they could easily steal tokens from the unsuspecting exchange.
 
 <h3 id="short-prev">Preventative Techniques</h3>
 
@@ -1193,7 +1193,7 @@ contract FindThisHash {
     }
 }
 ```
-Imagine this contract contains 1000 ether. The user who can find the pre-image of the sha3 hash `0xb5b5b97fafd9855eec9b41f74dfb6c38f5951141f9a3ecd7f44d5479b630ee0a` can submit the solution and retrieve the 1000 ether. Lets say one user figures out the solution is `Ethereum!`. They call `solve()` with `Ethereum!` as the parameter. Unfortunately an attacker has been clever enough to watch the transaction pool for anyone submitting a solution. They see this solution, check it's validity, and then submit an equivalent transaction with a much higher `gasPrice` than the original transaction. The miner who solves the block will likely give the attacker preference due to the higher `gasPrice` and accept their transaction before the original solver. The attacker will take the 1000 ether and the user who solved the problem will get nothing (there is no ether left in the contract).
+Imagine this contract contains 1000 ether. The user who can find the pre-image of the sha3 hash `0xb5b5b97fafd9855eec9b41f74dfb6c38f5951141f9a3ecd7f44d5479b630ee0a` can submit the solution and retrieve the 1000 ether. Let's say one user figures out the solution is `Ethereum!`. They call `solve()` with `Ethereum!` as the parameter. Unfortunately an attacker has been clever enough to watch the transaction pool for anyone submitting a solution. They see this solution, check it's validity, and then submit an equivalent transaction with a much higher `gasPrice` than the original transaction. The miner who solves the block will likely give the attacker preference due to the higher `gasPrice` and accept their transaction before the original solver. The attacker will take the 1000 ether and the user who solved the problem will get nothing (there is no ether left in the contract).
 
 A more realistic problem comes in the design of the future Casper implementation. The Casper proof of stake contracts invoke slashing conditions where users who notice validators double-voting or misbehaving are incentivised to submit proof that they have done so. The validator will be punished and the user rewarded. In such a scenario, it is expected that miners and users will front-run all such submissions of proof, and this issue must be addressed before the final release.
 
@@ -1311,7 +1311,7 @@ Some useful references for this are: [The Solidity Docs](http://solidity.readthe
 
 <h3 id="block-timestamp-vuln">The Vulnerability</h3>
 
-`block.timestamp` or its alias `now` can be manipulated by miners if they have some incentive to do so. Lets construct a simple game, which would be vulnerable to miner exploitation,
+`block.timestamp` or its alias `now` can be manipulated by miners if they have some incentive to do so. Let's construct a simple game, which would be vulnerable to miner exploitation,
 
 `roulette.sol`:
 ```solidity
@@ -1634,7 +1634,7 @@ Consider now, that we don't own a private key, but instead make up values for `r
 {to: "0xa9e", value: 10e18, nonce: 0}
 ```
 
-I've ignored the other parameters. This transaction will send 10 ether to the `0xa9e` address. Now lets say we make up some numbers `r` and `s` (these have specific ranges) and a `v`. If we derive the Ethereum address related to these made up numbers we will get a random Ethereum address, lets call it `0x54321`. Knowing this address, we could send 10 ether to the `0x54321` address (without owning the private key for the address). At any point in the future, we could send the transaction,
+I've ignored the other parameters. This transaction will send 10 ether to the `0xa9e` address. Now let's say we make up some numbers `r` and `s` (these have specific ranges) and a `v`. If we derive the Ethereum address related to these made up numbers we will get a random Ethereum address, let's call it `0x54321`. Knowing this address, we could send 10 ether to the `0x54321` address (without owning the private key for the address). At any point in the future, we could send the transaction,
 ```javascript
 {to: "0xa9e", value: 10e18, nonce: 0, from: "0x54321"}
 ```
