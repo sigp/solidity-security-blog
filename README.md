@@ -545,11 +545,11 @@ contract EtherGame {
     }
  }
 ```
-Here, we have just created a new variable, `depositedEther` which keeps track of the known ether deposited, and it is this variable to which we perform our requirements and tests. Notice, that we no longer have any reference to `this.balance`.
+Here, we have just created a new variable, `depositedWei` which keeps track of the known ether deposited, and it is this variable to which we perform our requirements and tests. Notice, that we no longer have any reference to `this.balance`.
 
 <h3 id="ether-example">Real-World Example: Unknown </h3>
 
-I'm yet to find and example of this that has been exploited in the wild. However, a few examples of exploitable contracts were given in the [Underhanded Solidity Contest](https://github.com/Arachnid/uscc/tree/master/submissions-2017/).
+I'm yet to find an example of this that has been exploited in the wild. However, a few examples of exploitable contracts were given in the [Underhanded Solidity Contest](https://github.com/Arachnid/uscc/tree/master/submissions-2017/).
 
 <h2 id="delegatecall"><span id="SP-4">4. Delegatecall</span></h2>
 
@@ -628,7 +628,7 @@ contract FibonacciBalance {
 ```
 This contract allows a participant to withdraw ether from the contract, with the amount of ether being equal to the Fibonacci number corresponding to the participants withdrawal order; i.e., the first participant gets 1 ether, the second also gets 1, the third gets 2, the forth gets 3, the fifth 5 and so on (until the balance of the contract is less than the Fibonacci number being withdrawn).
 
-There are a number of elements in this contract that may require some explanation. Firstly, there is an interesting-looking variable, `fibSig`. This holds the first 4 bytes of the Keccak (SHA-3) hash of the string "setFibonacci(uint256)". This is known as the [function selector](https://solidity.readthedocs.io/en/latest/abi-spec.html#function-selector) and is put into `calldata` to specify which function of a smart contract will be called. It is used in the `delegatecall` function on line \[21\] to specify that we wish to run the `setFibonacci(uint256)` function. The second argument in `delegatecall` is the parameter we are passing to the function. Secondly, we assume that the address for the `FibonacciLib` library is correctly referenced in the constructor (section [External Contract Referencing](#contract-reference) discuss some potential vulnerabilities relating to this kind if contract reference initialisation).
+There are a number of elements in this contract that may require some explanation. Firstly, there is an interesting-looking variable, `fibSig`. This holds the first 4 bytes of the Keccak (SHA-3) hash of the string "setFibonacci(uint256)". This is known as the [function selector](https://solidity.readthedocs.io/en/latest/abi-spec.html#function-selector) and is put into `calldata` to specify which function of a smart contract will be called. It is used in the `delegatecall` function on line \[21\] to specify that we wish to run the `setFibonacci(uint256)` function. The second argument in `delegatecall` is the parameter we are passing to the function. Secondly, we assume that the address for the `FibonacciLib` library is correctly referenced in the constructor (section [External Contract Referencing](#contract-reference) discuss some potential vulnerabilities relating to this kind of contract reference initialisation).
 
 Can you spot any error(s) in this contract? If you put this into remix, fill it with ether and call `withdraw()`, it will likely revert.
 
@@ -1568,7 +1568,7 @@ The issue with this contract is that the precision is only to the nearest `ether
 
 Keeping the right precision in your smart contracts is very important, especially when dealing ratios and rates which reflect economic decisions.
 
-You should ensure that any ratios or rates you are using allow for large numerators in fractions. For example, we used the rate `tokensPerEth` in our example. It would have been better to use `weiPerTokens` which would be a large number. To solve for the amount of tokens we could do `msg.sender/weiPerTokens`. This would give a more precise result.
+You should ensure that any ratios or rates you are using allow for large numerators in fractions. For example, we used the rate `tokensPerEth` in our example. It would have been better to use `weiPerTokens` which would be a large number. To solve for the amount of tokens we could do `msg.value/weiPerTokens`. This would give a more precise result.
 
 Another tactic to keep in mind, is to be mindful of order of operations. In the above example, the calculation to purchase tokens was `msg.value/weiPerEth*tokenPerEth`. Notice that the division occurs before the multiplication. This example would have achieved a greater precision if the calculation performed the multiplication first and then the division, i.e. `msg.value*tokenPerEth/weiPerEth`.
 
@@ -1578,7 +1578,7 @@ Finally, when defining arbitrary precision for numbers it can be a good idea to 
 
 I couldn't find a good example where rounding has caused a severe issue in a contract, but I'm sure there are plenty out there. Feel free to update this if you have a good one in mind.
 
-For lack of a good example, I want to draw your attention to [Ethstick](https://etherscan.io/address/0xbA6284cA128d72B25f1353FadD06Aa145D9095Af#code) mainly because I like the cool naming within the contract. This contract doesn't use any extended precision, however, it deals with `wei`. So this contract will have issues of rounding, but only at the `wei` level of precision. It has some more serious flaws, but these are relating back to the difficulty in getting entropy on the blockchain (see [Entropty Illusion](#entropy-illusion)). For a further discussion on the Ethstick contract, I'll refer you to another post of Peter Venesses, [Ethereum Contracts Are Going to be Candy For Hackers](https://vessenes.com/ethereum-contracts-are-going-to-be-candy-for-hackers/).
+For lack of a good example, I want to draw your attention to [Ethstick](https://etherscan.io/address/0xbA6284cA128d72B25f1353FadD06Aa145D9095Af#code) mainly because I like the cool naming within the contract. This contract doesn't use any extended precision, however, it deals with `wei`. So this contract will have issues of rounding, but only at the `wei` level of precision. It has some more serious flaws, but these are relating back to the difficulty in getting entropy on the blockchain (see [Entropy Illusion](#entropy-illusion)). For a further discussion on the Ethstick contract, I'll refer you to another post of Peter Venesses, [Ethereum Contracts Are Going to be Candy For Hackers](https://vessenes.com/ethereum-contracts-are-going-to-be-candy-for-hackers/).
 
 
 <h2 id="tx-origin"><span id="SP-16">16. Tx.Origin Authentication<span></h2>
@@ -1677,8 +1677,8 @@ contract KeylessHiddenEthCreator {
     // increment the contract nonce or retrieve ether from a hidden/key-less account
     // provided the nonce is correct
     function retrieveHiddenEther(address beneficiary) public returns (address) {
-    currentContractNonce +=1;
-       return new RecoverContract(beneficiary);
+        currentContractNonce +=1;
+        return new RecoverContract(beneficiary);
     }
 
     function () payable {} // Allow ether transfers (helps for playing in remix)
