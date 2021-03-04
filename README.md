@@ -1,3 +1,7 @@
+### This repository is the basis for the blog post found here: https://blog.sigmaprime.io/solidity-security.html
+
+
+
 Title: Solidity Security: Comprehensive list of known attack vectors and common anti-patterns
 
 Date: 2018-05-30 10:20
