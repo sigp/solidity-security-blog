@@ -1,28 +1,12 @@
-### This repository is the basis for the blog post found here: https://blog.sigmaprime.io/solidity-security.html
+# Context
 
+This repository is the basis for the blog post found here: https://blog.sigmaprime.io/solidity-security.html. 
 
+It forms the basis of the Smart Contract Security section in the Mastering Ethereum book: https://github.com/ethereumbook/ethereumbook
 
-Title: Solidity Security: Comprehensive list of known attack vectors and common anti-patterns
+# Summary
 
-Date: 2018-05-30 10:20
-
-Modified: 2018-10-20 14:00
-
-Category: Ethereum
-
-Tags: ethereum, solidity, security
-
-Slug: solidity-security
-
-Authors: Dr Adrian Manning
-
-Cover: imgs/solidity-security/sol-rot-13.png
-
-CodeBlockCSS: atom-one-dark.css
-
-CodeBlockLineNumbers: true
-
-Summary: This post aims to be a relatively in-depth and up-to-date introductory post detailing the past mistakes that have been made by Solidity developers in an effort to prevent future devs from repeating history.
+This post aims to be a relatively in-depth and up-to-date introductory post detailing the past mistakes that have been made by Solidity developers in an effort to prevent future devs from repeating history.
 
 Although in its infancy, Solidity has had widespread adoption and is used to compile the byte-code in many Ethereum smart contracts we see today. There have been a number of harsh lessons learnt by developers and users alike in discovering the nuances of the language and the EVM. This post aims to be a relatively in-depth and up-to-date introductory post detailing the past mistakes that have been made by Solidity developers in an effort to prevent future devs from repeating history.
 
