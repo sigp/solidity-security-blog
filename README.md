@@ -422,7 +422,7 @@ A common defensive programming technique that is useful in enforcing correct sta
 
 In particular, there is one apparent *invariant*, that may be tempting to use
 but can in fact be manipulated by external users (regardless of the rules put
-in place in the smart contract) .This is the current ether stored in the
+in place in the smart contract). This is the current ether stored in the
 contract. Often when developers first learn Solidity they have the
 misconception that a contract can only accept or obtain ether via payable
 functions. This misconception can lead to  contracts that have false
